@@ -57,14 +57,20 @@ LLM_MODEL=google.gemma-4-31b
 ```
 
 ### 4. Usage
-Run the CLI assistant with a question:
+
+Ask a single question:
 ```bash
 python main.py "How many records are in the orders table?"
 ```
 
-Or run interactively:
+Inspect discovered database schema:
 ```bash
-python main.py
+python main.py --schema
+```
+
+Start an interactive REPL session:
+```bash
+python main.py --interactive
 ```
 
 ---
@@ -74,6 +80,7 @@ python main.py
 - [x] Initial Snowflake connector and query runner
 - [x] Google Gemma SQL generation integration
 - [x] Read-only query validation
-- [ ] Automated schema discovery & foreign key mapping
+- [x] Automated schema discovery & column-level inspection
+- [x] Interactive CLI REPL session loop
 - [ ] Interactive Web UI
 - [ ] Multi-turn conversational context & query refinement

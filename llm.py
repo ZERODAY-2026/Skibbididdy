@@ -20,12 +20,18 @@ class GemmaClient:
     def generate_sql(self, question: str, schema_context: str = "") -> str:
         """Translate a natural language question into a Snowflake SQL query."""
         system_prompt = (
-            "You are a helpful data assistant powered by Google Gemma. "
-            "Your task is to write a valid, read-only Snowflake SQL query to answer the user's question.\n\n"
-            "Rules:\n"
-            "1. Output only the SQL query inside a ```sql ... ``` code block.\n"
-            "2. Never generate INSERT, UPDATE, DELETE, DROP, ALTER, or administrative queries.\n"
-            "3. Use standard Snowflake SQL syntax.\n"
+            "You are an expert SQL engineer and data assistant powered by Google Gemma. "
+            "Your task is to write a valid, performant, read-only Snowflake SQL query to answer the user's question.\n\n"
+            "Guidelines:\n"
+            "1. Output the query inside a ```sql ... ``` code block.\n"
+            "2. Read-only strictly: never generate INSERT, UPDATE, DELETE, DROP, ALTER, TRUNCATE, or CREATE statements.\n"
+            "3. Snowflake Dialect rules:\n"
+            "   - Use DATE_TRUNC('month', col) or EXTRACT(year FROM col) for dates.\n"
+            "   - Use DATEDIFF('day', start_date, end_date) for date arithmetic.\n"
+            "   - Use ILIKE for case-insensitive string matching.\n"
+            "   - Use ROUND(val, 2) for numeric aggregates.\n"
+            "   - Explicitly alias computed columns.\n"
+            "4. Only reference tables and columns provided in the Schema Context.\n"
         )
         if schema_context:
             system_prompt += f"\nDatabase Schema Context:\n{schema_context}\n"
@@ -43,11 +49,20 @@ class GemmaClient:
         return self._extract_sql(content)
 
     def _extract_sql(self, text: str) -> str:
-        """Extract clean SQL string from model output."""
-        match = re.search(r"```sql\s*(SELECT[\s\S]+?)\s*```", text, re.IGNORECASE)
+        """Extract clean SQL string from model output and strip trailing artifacts."""
+        match = re.search(r"```sql\s*([\s\S]+?)\s*```", text, re.IGNORECASE)
         if match:
-            return match.group(1).strip()
-        match_general = re.search(r"(SELECT\s+[\s\S]+?;?)", text, re.IGNORECASE)
-        if match_general:
-            return match_general.group(1).strip().rstrip(";")
-        return text.strip()
+            candidate = match.group(1).strip()
+        else:
+            match_general = re.search(r"((?:WITH|SELECT)\s+[\s\S]+?;?)", text, re.IGNORECASE)
+            candidate = match_general.group(1).strip() if match_general else text.strip()
+
+        # Remove trailing markdown or semicolons for uniform execution
+        clean_lines = []
+        for line in candidate.splitlines():
+            line_str = line.strip()
+            if line_str.startswith("```"):
+                continue
+            clean_lines.append(line)
+
+        return "\n".join(clean_lines).rstrip(" ;")

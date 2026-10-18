@@ -80,6 +80,36 @@ class SnowflakeClient:
         finally:
             cursor.close()
 
+    def introspect_schema(self, refresh: bool = False) -> Dict[str, List[Dict[str, str]]]:
+        """Discover all tables and columns in the active schema, caching results."""
+        if hasattr(self, "_schema_cache") and self._schema_cache and not refresh:
+            return self._schema_cache
+
+        schema_data: Dict[str, List[Dict[str, str]]] = {}
+        tables = self.list_tables()
+        for tbl in tables:
+            try:
+                schema_data[tbl] = self.describe_table(tbl)
+            except Exception:
+                schema_data[tbl] = []
+
+        self._schema_cache = schema_data
+        return schema_data
+
+    def format_schema_context(self, max_tables: int = 12) -> str:
+        """Format introspected schema into concise context string for the LLM."""
+        schema = self.introspect_schema()
+        if not schema:
+            return ""
+
+        lines = [f"Database: {self.database} | Schema: {self.schema}"]
+        for tbl, cols in list(schema.items())[:max_tables]:
+            col_strs = [f"{c['column']} ({c['type']})" for c in cols[:15]]
+            if len(cols) > 15:
+                col_strs.append(f"... +{len(cols) - 15} more")
+            lines.append(f"- Table `{tbl}`: {', '.join(col_strs)}")
+        return "\n".join(lines)
+
     def close(self) -> None:
         """Close connection if open."""
         if self._conn and not self._conn.is_closed():
