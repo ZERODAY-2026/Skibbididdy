@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#01030D">
+  <meta name="description" content="Data Mind turns natural-language questions into verified, inspectable answers from your business data.">
+  <title>Data Mind — Ask. Verify. Decide.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="/index.css">
+  <script src="/smoke.js" defer></script>
+  <script src="/conversations.js" defer></script>
+  <script src="/settings.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body data-view="empty">
+  <div id="shaderFallback" class="shader-fallback" hidden aria-hidden="true"></div>
+  <canvas id="smokeCanvas" class="smoke-canvas" aria-hidden="true"></canvas>
+
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" type="button" id="navToggleBtn" aria-label="Toggle navigation" aria-controls="sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <a class="wordmark" href="#" aria-label="Data Mind home"><svg class="brand-symbol" viewBox="0 0 28 28" aria-hidden="true"><path d="M6 4h7a10 10 0 0 1 0 20H6V4Z"/><path d="M6 10h7a4 4 0 0 1 0 8H6M6 4v20"/></svg>Data Mind</a>
+        <span class="topbar-divider"></span><span class="workspace-name">Personal workspace</span>
+      </div>
+      <div class="topbar-right">
+        <span class="connection" id="backendBadge" title="Active data connection"><i class="connection-dot"></i><span id="backendName">Connecting</span></span>
+        <button class="ghost-btn" type="button" id="paletteBtn" aria-label="Open command palette"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg><span class="desktop-only">Search</span></button>
+        <button class="ghost-btn desktop-only" type="button" id="catalogBtn">Data catalog</button>
+        <button class="ghost-btn" type="button" id="uploadModalBtn" aria-label="Add data"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg><span class="desktop-only">Add data</span></button>
+        <button class="icon-btn" type="button" id="settingsBtn" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button>
+      </div>
+    </header>
+
+    <aside class="sidebar" id="sidebar" aria-label="Workspace navigation">
+      <div class="workspace-switch"><div><strong>Data workspace</strong><small>Local environment</small></div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 8 3-3 3 3m-6 8 3 3 3-3"/></svg></div>
+      <button class="primary-btn new-analysis" type="button" id="sidebarNewBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New analysis<kbd>N</kbd></button>
+      <nav class="side-nav" aria-label="Primary">
+        <button class="side-nav-item active" type="button" id="workspaceBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>Workspace</button>
+        <button class="side-nav-item" type="button" id="sidebarCatalogBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Data catalog<span class="count" id="tableCount">—</span></button>
+      </nav>
+      <div class="side-section">
+        <div class="side-heading"><span>Recent</span><button type="button" id="clearHistoryBtn">Clear</button></div>
+        <div class="history-list" id="historyList"><p class="history-empty">Your recent questions will appear here.</p></div>
+      </div>
+      <div class="side-note"><span class="execution-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg></span><div><strong id="executionMode">Execution</strong><span id="privacyStatus">Checking execution mode…</span></div></div>
+      <div class="sidebar-bottom"><span>Data Mind</span><span class="model-label" id="modelLabel">Connecting</span></div>
+    </aside>
+
+    <main class="canvas" id="canvas">
+      <div class="workspace-heading"><div><span>Workspace</span><span class="breadcrumb-divider">/</span><strong id="viewLabel">New analysis</strong></div><span class="workspace-hint"><i></i> Read-only queries</span></div>
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="canvas-inner">
+          <div class="active-dataset" id="activeDatasetBanner" hidden><div><span class="label">Active dataset</span><strong id="activeDatasetName">Uploaded data</strong></div><button class="text-button danger" id="deleteDatasetBtn" type="button">Remove dataset</button></div>
+
+          <section class="welcome" id="emptyState">
+            <div class="welcome-label"><span></span> READY TO QUERY</div>
+            <h1>Explore your data.</h1>
+            <p>Ask a question. Follow the evidence.</p>
+          </section>
+
+          <div class="archived-turns" id="archivedTurns"></div>
+          <section class="results" id="resultsContainer" hidden>
+            <header class="result-head">
+              <h2 id="questionEcho"></h2>
+              <div class="verdict-row"><span class="verdict" id="trustSummary"></span><span class="verdict-meta" id="trustMetrics"></span></div>
+            </header>
+            <article class="answer">
+              <div class="answer-content" id="answerContent"></div>
+              <div class="clarify-card" id="clarifyCard" hidden><span>Try a more specific question</span><div id="clarifyChips"></div></div>
+            </article>
+            <article class="chart-block" id="chartCard" hidden>
+              <h3 id="chartTitle">Visual summary</h3>
+              <div id="chartBody" class="chart-body" role="img"></div>
+              <p id="chartNote" class="chart-note" hidden></p>
+            </article>
+            <div class="result-actions">
+              <button class="ghost-btn" type="button" id="copyAnswerBtn">Copy</button>
+              <button class="ghost-btn" type="button" id="exportCsvBtn">Export CSV</button>
+              <button class="ghost-btn" type="button" id="inspectEvidenceBtn">Inspect evidence</button>
+              <div class="menu">
+                <button class="ghost-btn icon-only" type="button" id="moreBtn" aria-haspopup="menu" aria-expanded="false" aria-label="More actions"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+                <div class="menu-list" id="moreMenu" role="menu" hidden>
+                  <button type="button" role="menuitem" id="copySqlBtn">Copy SQL</button>
+                  <button type="button" role="menuitem" id="receiptBtn">Receipt</button>
+                  <button type="button" role="menuitem" id="secondOpinionBtn">Second opinion</button>
+                  <button type="button" role="menuitem" id="redTeamBtn">Challenge</button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="loading" id="loadingState" hidden aria-live="polite">
+            <h2 class="pending-question" id="pendingQuestion"></h2>
+            <div class="loading-head"><span>Analyzing<span class="elapsed" id="elapsedTimer">0.0s</span></span><button class="text-button" id="cancelQueryBtn" type="button">Cancel</button></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton"></div><div class="skeleton skeleton-short"></div>
+          </section>
+          <section class="notice" id="errorState" hidden role="alert"><div><strong id="errorTitle">Analysis could not be completed</strong><p id="errorMessage"></p></div><button class="text-button" type="button" id="dismissErrorBtn">Dismiss</button></section>
+        </div>
+      </div>
+
+      <div class="composer-zone">
+        <section class="composer" aria-label="Ask a question">
+          <form id="askForm" class="query-form">
+            <label id="queryLabel" for="questionInput" class="sr-only">What do you want to understand?</label>
+            <textarea id="questionInput" rows="2" required placeholder="Ask Data Mind…"></textarea>
+            <div class="query-form-footer">
+              <div class="query-controls">
+                <select id="modelPresetSelect" aria-label="Analysis mode"><option value="local">Local private</option><option value="hybrid_privacy">Hybrid privacy</option><option value="cloud_accuracy">Cloud accuracy</option><option value="second_opinion">Second opinion</option></select>
+                <label class="strict-toggle" title="Reject answers containing unverified claims"><input type="checkbox" id="strictModeToggle" checked><span></span>Strict</label>
+              </div>
+              <span class="shortcut-hint"><kbd>Enter</kbd> to ask · <kbd>Shift</kbd> + <kbd>Enter</kbd> new line</span>
+              <button class="ask-button" type="submit" id="submitBtn" aria-label="Ask Data Mind"><span class="btn-text sr-only">Ask Data Mind</span><span class="button-spinner" id="btnSpinner" aria-hidden="true"></span><svg class="send-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m0 0-6 6m6-6 6 6"/></svg></button>
+            </div>
+          </form>
+        </section>
+
+        <section class="empty-detail" id="emptyDetail">
+          <div class="section-heading"><h3>A place to start</h3><span>From your connected model</span></div>
+          <div class="suggestion-list" id="chipsList"><button type="button" class="suggestion-skeleton" disabled></button><button type="button" class="suggestion-skeleton" disabled></button></div>
+          <section class="dataset-overview"><div class="section-heading"><h3>Connected data</h3><button type="button" class="text-button" id="overviewCatalogBtn">View schema <span aria-hidden="true">↗</span></button></div><div id="datasetTables" class="dataset-tables"></div><p id="welcomeMeta" class="dataset-meta">Loading data model…</p></section>
+          <div class="workspace-footnote"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4v5c0 5-8 9-8 9s-8-4-8-9V7l8-4Z"/><path d="m8 12 3 3 5-6"/></svg><span>Read-only execution. Source citations. Numbers checked against results.</span></div>
+          <div id="recentList" hidden></div>
+        </section>
+      </div>
+    </main>
+
+    <aside class="evidence" id="evidencePanel" aria-label="Evidence">
+      <div class="resizer" id="evidenceResizer" role="separator" aria-orientation="vertical" aria-label="Resize evidence panel" tabindex="0"></div>
+      <div class="evidence-head"><div><span class="label">Source of truth</span><h2>Evidence</h2></div><span class="evidence-indicator" title="Evidence from the current analysis"></span><button class="icon-button evidence-close" id="closeEvidenceBtn" type="button" aria-label="Close evidence"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div class="evidence-placeholder" id="evidencePlaceholder"><p>SQL, source rows, documents and numeric checks for each answer appear here.</p></div>
+      <div class="evidence-body" id="evidenceBody" hidden>
+        <p class="meta-line" id="hoodMeta"></p>
+        <div class="tabs" role="tablist" aria-label="Evidence views"><button class="tab active" type="button" data-tab="sqlTab" role="tab" aria-selected="true">SQL &amp; rows <span id="sqlCount">0</span></button><button class="tab" type="button" data-tab="docsTab" role="tab" aria-selected="false">Documents <span id="docsCount">0</span></button><button class="tab" type="button" data-tab="numericTab" role="tab" aria-selected="false">Numeric audit <span id="numChecksCount">0</span></button></div>
+        <div class="tab-pane active" id="sqlTab" role="tabpanel"><div id="queriesList"></div></div>
+        <div class="tab-pane" id="docsTab" role="tabpanel"><div id="docsList"></div></div>
+        <div class="tab-pane" id="numericTab" role="tabpanel"><div id="numericList"></div></div>
+        <details class="assumptions" id="assumptionsBox" hidden><summary>Method &amp; assumptions <span id="assumptionsBadge">Checked</span></summary><div id="assumptionsBody"></div></details>
+      </div>
+    </aside>
+  </div>
+
+  <aside class="drawer" id="catalogDrawer" aria-labelledby="catalogTitle" aria-hidden="true">
+    <div class="drawer-header"><div><span class="label">Connected model</span><h2 id="catalogTitle">Data catalog</h2></div><button class="icon-button" type="button" data-close="catalogDrawer" aria-label="Close data catalog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <p class="drawer-intro">These are the tables and fields Data Mind is allowed to reason over.</p><div id="catalogContent" class="catalog-content"></div>
+  </aside>
+  <div class="scrim" id="drawerScrim" hidden></div>
+
+  <div class="modal" id="detailModal" hidden role="dialog" aria-modal="true" aria-labelledby="detailModalTitle"><div class="modal-card"><div class="modal-header"><div><span class="label">Inspect</span><h2 id="detailModalTitle">Evidence detail</h2></div><button class="icon-button" data-modal-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><div id="detailModalBody" class="modal-body"></div></div></div>
+
+  <div class="modal palette" id="paletteModal" hidden role="dialog" aria-modal="true" aria-label="Command palette">
+    <div class="palette-card"><input id="paletteInput" type="text" placeholder="Type a command or question…" autocomplete="off" aria-controls="paletteList"><ul id="paletteList" role="listbox"></ul></div>
+  </div>
+
+  <div class="modal" id="uploadModal" hidden role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+    <div class="modal-card modal-wide">
+      <div class="modal-header"><div><span class="label">Private workspace</span><h2 id="uploadTitle">Add your own dataset</h2></div><button class="icon-button" data-modal-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div class="modal-body"><div class="upload-status" id="uploadStatus"></div><div class="dropzone" id="fileDropzone" tabindex="0"><input id="filePickerInput" type="file" accept=".csv,.parquet" hidden><strong>Drop a CSV or Parquet file here</strong><p>Your file stays in an isolated local session and can be deleted at any time.</p><button class="primary-btn" type="button" id="browseFilesBtn">Choose a file</button></div><div class="upload-progress" id="uploadProgress" hidden><span></span><p>Profiling columns and preparing a safe semantic model…</p></div><div class="upload-review" id="uploadReview" hidden><div class="upload-review-heading"><div><span class="label">Ready to review</span><h3 id="reviewTableName">Dataset</h3></div><span id="reviewTableStats"></span></div><div class="review-table-wrap"><table><thead><tr><th>Use</th><th>Column</th><th>Type</th><th>Description</th></tr></thead><tbody id="uploadColumnsTbody"></tbody></table></div><div class="modal-actions"><button class="ghost-btn" data-modal-close type="button">Cancel</button><button class="primary-btn" type="button" id="confirmUploadBtn">Activate dataset</button></div></div></div>
+    </div>
+  </div>
+  <div class="modal" id="settingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card settings-card">
+      <div class="modal-header"><div><span class="label">Settings</span><h2 id="settingsTitle">Model provider</h2></div><button class="icon-button" data-modal-close type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <form class="modal-body settings-body" id="settingsForm" autocomplete="off">
+        <div class="provider-options" role="radiogroup" aria-label="Model provider">
+          <label class="provider-option"><input type="radio" name="provider" value="local" checked><span><strong>Local model</strong><small>Runs on this machine through Ollama. Nothing leaves it.</small></span></label>
+          <label class="provider-option"><input type="radio" name="provider" value="openrouter"><span><strong>OpenRouter</strong><small>Use a free model through your OpenRouter key.</small></span></label>
+          <label class="provider-option"><input type="radio" name="provider" value="google"><span><strong>Google AI Studio</strong><small>Use Gemini directly with a Gemini API key.</small></span></label>
+        </div>
+        <div class="settings-panel" id="localPanel">
+          <p class="settings-note private-note">Data stays on this computer. Data Mind asks Ollama which models are installed and lets you choose one here.</p>
+          <label class="field" for="localModelSelect"><span>Installed model <small id="localModelCount"></small><button class="text-button" type="button" id="refreshLocalModelsBtn">Refresh list</button></span>
+            <select id="localModelSelect"><option value="">Loading local models…</option></select>
+          </label>
+          <p class="field-help">Start Ollama before refreshing. The list comes directly from <code>/api/tags</code> on your local Ollama service.</p>
+        </div>
+        <div class="settings-panel" id="openrouterPanel" hidden>
+          <p class="settings-note">With OpenRouter, your questions, the schema summary and the rows needed to answer are sent to OpenRouter and the model’s provider. Free models are rate limited, and some providers may log prompts.</p>
+          <label class="field" for="openrouterKeyInput"><span>API key</span>
+            <input id="openrouterKeyInput" type="password" spellcheck="false" autocomplete="off" placeholder="sk-or-…">
+          </label>
+          <p class="key-state" id="openrouterKeyState" hidden><span id="openrouterKeyStateText"></span><button class="text-button danger" type="button" id="removeOpenrouterKeyBtn">Remove key</button></p>
+          <p class="field-help">Create a key at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">OpenRouter</a>. It is saved in plaintext on this computer in <code>.datamind/settings.json</code> (excluded from Git), never returned to the browser. Protect access to this file.</p>
+          <label class="field" for="openrouterModelSelect"><span>Model <small id="openrouterModelCount"></small><button class="text-button" type="button" id="refreshOpenrouterModelsBtn">Refresh list</button></span>
+            <select id="openrouterModelSelect"><option value="">Choose a model…</option></select>
+          </label>
+          <p class="field-help">All currently free text models are listed, including multimodal models that accept text. Native tool calling is recommended; other models use text tool compatibility mode. Availability and free-tier quotas depend on OpenRouter.</p>
+        </div>
+        <div class="settings-panel" id="googlePanel" hidden>
+          <p class="settings-note">Questions, schema context and required rows are sent to Google when this provider is active. Usage follows the quota and billing attached to your Google AI Studio project.</p>
+          <label class="field" for="googleKeyInput"><span>Gemini API key <button class="text-button" type="button" id="loadGoogleModelsBtn">Load models</button></span>
+            <input id="googleKeyInput" type="password" spellcheck="false" autocomplete="off" placeholder="Enter your Gemini API key">
+          </label>
+          <p class="key-state" id="googleKeyState" hidden><span id="googleKeyStateText"></span><button class="text-button danger" type="button" id="removeGoogleKeyBtn">Remove key</button></p>
+          <p class="field-help">Create a key in <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>. It is stored locally in the same gitignored settings file and is never returned by this page.</p>
+          <label class="field" for="googleModelSelect"><span>Gemini model <small id="googleModelCount"></small></span>
+            <select id="googleModelSelect"><option value="">Enter a key, then load models…</option></select>
+          </label>
+          <p class="field-help">Data Mind fetches the compatible Gemini models available to this key. If you only add a key, the first available model is selected automatically.</p>
+        </div>
+        <p class="settings-status" id="settingsStatus" role="status" hidden></p>
+        <div class="modal-actions">
+          <button class="ghost-btn" type="button" id="testBtn" disabled title="Sends a tiny request using the active saved provider">Test provider</button>
+          <button class="ghost-btn" data-modal-close type="button">Cancel</button>
+          <button class="primary-btn" type="submit" id="saveSettingsBtn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

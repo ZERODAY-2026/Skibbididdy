@@ -122,12 +122,11 @@ def main() -> None:
         interactive_loop()
         return
 
-    if "--schema" in args:
-        db = SnowflakeClient()
-        try:
-            print(db.format_schema_context() or "No tables discovered.")
-        finally:
-            db.close()
+    if "--serve" in args or "serve" in args:
+        import os
+        from datamind.server.server import run_server
+        port = int(os.getenv("PORT", 8080))
+        run_server(host="127.0.0.1", port=port)
         return
 
     question = " ".join(args).strip()
